@@ -54,3 +54,71 @@
 # http://www.manythings.org/anki/deu-eng.zip
 
 # Download the dataset to your current working directory and decompress; for example:
+
+!wget http://www.manythings.org/anki/deu-eng.zip
+
+!unzip deu-eng.zip # remeber to open a notebook in google colab
+
+# You will have a file called deu.txt that contains 152,820 pairs of English to German phases, one pair per line with a tab separating the language.
+
+# For example, the first 5 lines of the file look as follows:
+
+# Hi. Hallo!
+# Hi. Grüß Gott!
+# Run!    Lauf!
+# Wow!    Potzdonner!
+# Wow!    Donnerwetter!
+# 1
+# 2
+# 3
+# 4
+# 5
+# Hi. Hallo!
+# Hi. Grüß Gott!
+# Run!    Lauf!
+# Wow!    Potzdonner!
+# Wow!    Donnerwetter!
+
+
+# We will frame the prediction problem as given a sequence of words in German as input, translate or predict the sequence of words in English.
+
+# The model we will develop will be suitable for some beginner German phrases.
+
+# Preparing the Text Data
+# The next step is to prepare the text data ready for modeling.
+
+# If you are new to cleaning text data, see this post:
+
+# How to Clean Text for Machine Learning with Python
+# https://machinelearningmastery.com/clean-text-machine-learning-python/
+
+# Take a look at the raw data and note what you see that we might need to handle in a data cleaning operation.
+
+# For example, here are some observations I note from reviewing the raw data:
+
+# There is punctuation.
+# The text contains uppercase and lowercase.
+# There are special characters in the German.
+# There are duplicate phrases in English with different translations in German.
+# The file is ordered by sentence length with very long sentences toward the end of the file.
+# Did you note anything else that could be important?
+# Let me know in the comments below.
+
+# A good text cleaning procedure may handle some or all of these observations.
+
+# Data preparation is divided into two subsections:
+
+# Clean Text
+# Split Text
+# 1. Clean Text
+# First, we must load the data in a way that preserves the Unicode German characters. The function below called load_doc() will load the file as a blob of text.
+
+# load doc into memory
+def load_doc(filename):
+    # open the file as read only
+    file = open(filename, mode='rt', encoding='utf-8')
+    # read all text
+    text = file.read()
+    # close the file
+    file.close()
+    return text
