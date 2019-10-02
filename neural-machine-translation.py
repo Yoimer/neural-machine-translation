@@ -248,3 +248,131 @@ save_clean_data(clean_pairs, 'english-german.pkl')
 # spot check
 for i in range(100):
     print('[%s] => [%s]' % (clean_pairs[i,0], clean_pairs[i,1]))
+
+# 2. Split Text
+# The clean data contains a little over 150,000 phrase pairs and some of the 
+# pairs toward the end of the file are very long.
+
+# This is a good number of examples for developing a small translation model.
+# The complexity of the model increases with the number of examples, length of phrases, and size of 
+# the vocabulary.
+
+# Although we have a good dataset for modeling translation, 
+# we will simplify the problem slightly to dramatically reduce the size of the model required, 
+# and in turn the training time required to fit the model.
+
+# You can explore developing a model on the fuller dataset as an extension; 
+# I would love to hear how you do.
+
+# We will simplify the problem by reducing the dataset to the 
+# first 10,000 examples in the file; these will be the shortest phrases in the dataset.
+
+# Further, we will then stake the first 9,000 of those as examples for training and the remaining 
+# 1,000 examples to test the fit model.
+
+# Below is the complete example of loading the clean data, splitting it,
+# and saving the split portions of data to new files.
+
+from pickle import load
+from pickle import dump
+from numpy.random import rand
+from numpy.random import shuffle
+ 
+# load a clean dataset
+def load_clean_sentences(filename):
+    return load(open(filename, 'rb'))
+ 
+# save a list of clean sentences to file
+def save_clean_data(sentences, filename):
+    dump(sentences, open(filename, 'wb'))
+    print('Saved: %s' % filename)
+
+# load dataset
+raw_dataset = load_clean_sentences('english-german.pkl')
+
+# reduce dataset size
+n_sentences = 10000
+dataset = raw_dataset[:n_sentences, :]
+# random shuffle
+shuffle(dataset)
+# split into train/test
+train, test = dataset[:9000], dataset[9000:]
+# save
+save_clean_data(dataset, 'english-german-both.pkl')
+save_clean_data(train, 'english-german-train.pkl')
+save_clean_data(test, 'english-german-test.pkl')
+
+# Running the example creates three new files: 
+# the english-german-both.pkl that contains all of the train 
+# and test examples that we can use to define the parameters of the problem, 
+# such as max phrase lengths and the vocabulary, and the english-german-train.pkl 
+# and english-german-test.pkl files for the train and test dataset.
+
+# We are now ready to start developing our translation model.
+
+# Train Neural Translation Model
+# In this section, we will develop the neural translation model.
+
+# If you are new to neural translation models, see the post:
+
+# A Gentle Introduction to Neural Machine Translation
+# https://machinelearningmastery.com/introduction-neural-machine-translation/
+# This involves both loading and preparing the clean text data ready 
+# for modeling and defining and training the model on the prepared data.
+
+# Let’s start off by loading the datasets so that we can prepare the data. 
+# The function below named load_clean_sentences() can be used to load the train, 
+# test, and both datasets in turn.
+
+# We will use the “both” or combination of the train and test datasets to define 
+# the maximum length and vocabulary of the problem.
+
+# This is for simplicity. Alternately, we could define these properties 
+# from the training dataset alone and truncate examples in the test 
+# set that are too long or have words that are out of the vocabulary.
+
+# We can use the Keras Tokenize class to map words to integers, as 
+# needed for modeling. We will use separate tokenizer for the 
+# English sequences and the German sequences. 
+# The function below-named create_tokenizer()
+#  will train a tokenizer on a list of phrases.
+
+# fit a tokenizer
+def create_tokenizer(lines):
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(lines)
+    return tokenizer
+
+# Similarly, the function named max_length()
+# below will find the length of the longest sequence in a list of phrases.
+
+# max sentence length
+def max_length(lines):
+    return max(len(line.split()) for line in lines)
+
+# max sentence length
+def max_length(lines):
+    return max(len(line.split()) for line in lines)
+
+# We can call these functions with the combined dataset to 
+# prepare tokenizers, vocabulary sizes, 
+# and maximum lengths for both the English and German phrases.
+
+# install tokenizer
+!pip3 install tokenizer
+
+from keras.preprocessing.text import Tokenizer
+
+# prepare english tokenizer
+eng_tokenizer = create_tokenizer(dataset[:, 0])
+eng_vocab_size = len(eng_tokenizer.word_index) + 1
+eng_length = max_length(dataset[:, 0])
+print('English Vocabulary Size: %d' % eng_vocab_size)
+print('English Max Length: %d' % (eng_length))
+
+# prepare german tokenizer
+ger_tokenizer = create_tokenizer(dataset[:, 1])
+ger_vocab_size = len(ger_tokenizer.word_index) + 1
+ger_length = max_length(dataset[:, 1])
+print('German Vocabulary Size: %d' % ger_vocab_size)
+print('German Max Length: %d' % (ger_length))
