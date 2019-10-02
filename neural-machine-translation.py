@@ -486,3 +486,43 @@ model.compile(optimizer='adam', loss='categorical_crossentropy')
 # summarize defined model
 print(model.summary())
 plot_model(model, to_file='model.png', show_shapes=True)
+
+# Next, the model is trained.
+
+# Each epoch takes about 30 seconds on modern CPU hardware; no GPU is required.
+
+# During the run, the model will be saved to the file model.h5, 
+# ready for inference in the next step.
+
+# Evaluate Neural Translation Model
+# We will evaluate the model on the train and the test dataset.
+
+# The model should perform very well on the train dataset and 
+# ideally have been generalized to perform well on the test dataset.
+
+# Ideally, we would use a separate validation dataset to 
+# help with model selection during training instead of the test set. 
+# You can try this as an extension.
+
+# The clean datasets must be loaded and prepared as before.
+
+######### Be sure that the current path is /content
+
+# load datasets
+dataset = load_clean_sentences('english-german-both.pkl')
+train = load_clean_sentences('english-german-train.pkl')
+test = load_clean_sentences('english-german-test.pkl')
+
+# prepare english tokenizer
+eng_tokenizer = create_tokenizer(dataset[:, 0])
+eng_vocab_size = len(eng_tokenizer.word_index) + 1
+eng_length = max_length(dataset[:, 0])
+
+# prepare german tokenizer
+ger_tokenizer = create_tokenizer(dataset[:, 1])
+ger_vocab_size = len(ger_tokenizer.word_index) + 1
+ger_length = max_length(dataset[:, 1])
+
+# prepare data
+trainX = encode_sequences(ger_tokenizer, ger_length, train[:, 1])
+testX = encode_sequences(ger_tokenizer, ger_length, test[:, 1])
