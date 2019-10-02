@@ -376,3 +376,49 @@ ger_vocab_size = len(ger_tokenizer.word_index) + 1
 ger_length = max_length(dataset[:, 1])
 print('German Vocabulary Size: %d' % ger_vocab_size)
 print('German Max Length: %d' % (ger_length))
+
+# We are now ready to prepare the training dataset.
+
+# Each input and output sequence must be encoded to 
+# integers and padded to the maximum phrase length. 
+# This is because we will use a word embedding for the input sequences 
+# and one hot encode the output sequences 
+# The function below named encode_sequences() 
+# will perform these operations and return the result.
+
+# encode and pad sequences
+def encode_sequences(tokenizer, length, lines):
+    # integer encode sequences
+    X = tokenizer.texts_to_sequences(lines)
+    # pad sequences with 0 values
+    X = pad_sequences(X, maxlen=length, padding='post')
+    return X
+
+# The output sequence needs to be one-hot encoded. 
+# This is because the model will predict the probability
+# of each word in the vocabulary as output.
+
+# The function encode_output() 
+# below will one-hot encode English output sequences.
+
+# one hot encode target sequence
+def encode_output(sequences, vocab_size):
+    ylist = list()
+    for sequence in sequences:
+        encoded = to_categorical(sequence, num_classes=vocab_size)
+        ylist.append(encoded)
+    y = array(ylist)
+    y = y.reshape(sequences.shape[0], sequences.shape[1], vocab_size)
+    return y
+
+from keras.preprocessing.sequence import pad_sequences
+
+from keras.utils import to_categorical
+
+# We can make use of these two functions and prepare both the 
+# train and test dataset ready for training the model.
+
+# prepare training data
+trainX = encode_sequences(ger_tokenizer, ger_length, train[:, 1])
+trainY = encode_sequences(eng_tokenizer, eng_length, train[:, 0])
+trainY = encode_output(trainY, eng_vocab_size)
