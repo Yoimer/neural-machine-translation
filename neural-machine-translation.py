@@ -422,3 +422,67 @@ from keras.utils import to_categorical
 trainX = encode_sequences(ger_tokenizer, ger_length, train[:, 1])
 trainY = encode_sequences(eng_tokenizer, eng_length, train[:, 0])
 trainY = encode_output(trainY, eng_vocab_size)
+
+# prepare validation data
+testX = encode_sequences(ger_tokenizer, ger_length, test[:, 1])
+testY = encode_sequences(eng_tokenizer, eng_length, test[:, 0])
+testY = encode_output(testY, eng_vocab_size)
+
+# We are now ready to define the model.
+
+# We will use an encoder-decoder LSTM model on this problem. In this architecture, 
+# the input sequence is encoded by a front-end model called 
+# the encoder then decoded word by word by a backend model called the decoder.
+
+# The function define_model() below defines the model and takes a 
+# number of arguments used to configure the model, 
+# such as the size of the input and output vocabularies, 
+# the maximum length of input and output phrases, 
+# and the number of memory units used to configure the model.
+
+# The model is trained using the efficient Adam 
+# approach to stochastic gradient descent and minimizes 
+# the categorical loss function because 
+# we have framed the prediction problem as multi-class classification.
+
+# The model configuration was not optimized for 
+# this problem, meaning that there is plenty of opportunity for you to tune it and lift the skill 
+# of the translations. I would love to see what you can come up with.
+
+# For more advice on configuring neural machine translation models, see the post:
+
+# How to Configure an Encoder-Decoder Model for Neural Machine Translation
+
+# https://machinelearningmastery.com/configure-encoder-decoder-model-neural-machine-translation/
+
+from keras.models import Sequential
+
+from keras.layers import Embedding
+
+from keras.layers import LSTM
+
+from keras.layers import RepeatVector
+
+from keras.layers import TimeDistributed
+
+from keras.layers import Dense
+
+from keras.utils.vis_utils import plot_model
+
+# define NMT model
+def define_model(src_vocab, tar_vocab, src_timesteps, tar_timesteps, n_units):
+    model = Sequential()
+    model.add(Embedding(src_vocab, n_units, input_length=src_timesteps, mask_zero=True))
+    model.add(LSTM(n_units))
+    model.add(RepeatVector(tar_timesteps))
+    model.add(LSTM(n_units, return_sequences=True))
+    model.add(TimeDistributed(Dense(tar_vocab, activation='softmax')))
+    return model
+ 
+# define model
+model = define_model(ger_vocab_size, eng_vocab_size, ger_length, eng_length, 256)
+model.compile(optimizer='adam', loss='categorical_crossentropy')
+
+# summarize defined model
+print(model.summary())
+plot_model(model, to_file='model.png', show_shapes=True)
